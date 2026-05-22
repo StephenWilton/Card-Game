@@ -1,6 +1,17 @@
 using System.Collections.Generic; // Lets us use List<T>
 using UnityEngine;
 
+public enum HeroClass
+{
+    Paladin
+}
+
+public enum PatronType
+{
+    None,
+    TheDevourer
+}
+
 public enum CardType
 {
     Attack,
@@ -15,7 +26,10 @@ public enum CardTarget
     Enemy,
     Both,
     AllEnemies,
-    AllUnits
+    AllUnits,
+    FirstRow,
+    BackRow,
+    PierceColumn
 }
 
 public enum DamageType
@@ -112,6 +126,15 @@ public class CardData : ScriptableObject
 {
     [Header("Basic Card Info")]
 
+    // The class this card belongs to.
+    public HeroClass heroClass = HeroClass.Paladin;
+
+    // None for normal class cards. The Devourer for corrupted patron cards.
+    public PatronType patronType = PatronType.None;
+
+    // True when this is a patron-influenced version of a class card.
+    public bool isCorrupted = false;
+
     // Attack, Skill, or Power.
     public CardType cardType;
 
@@ -127,7 +150,6 @@ public class CardData : ScriptableObject
 
     // How much energy the card costs to play.
     public int energyCost = 1;
-
 
     [Header("Card Actions")]
 
