@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62bc5aecddca437fb3a60d428abf135f, type: 3}
+  m_Name: The Devourer
+  m_EditorClassIdentifier: Assembly-CSharp::PatronData
+  patronType: 1
+  displayName: The Devourer
+  maxInfluence: 10
+  influenceColor: {r: 0.55, g: 0.13, b: 0.11, a: 1}
+  dialogueLines:
+  - trigger: 0
+    line: Take the oath. I will take what remains.
+  - trigger: 1
+    line: Let their courage become nourishment.
+  - trigger: 2
+    line: Refusal is a fine flavor.
+  - trigger: 3
+    line: There. The prayer has teeth now.
+  - trigger: 4
+    line: Rest, little blade. Hunger sharpens quietly.
+  - trigger: 5
+    line: Kneel, and be less broken.
+  - trigger: 6
+    line: Another room emptied. Another promise kept.
+  - trigger: 7
+    line: Even defeat leaves something to consume.

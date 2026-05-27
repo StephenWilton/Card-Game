@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class Combat : MonoBehaviour
 {
+    [Header("Run Identity")]
+    [SerializeField] private HeroClassData selectedClass;
+    [SerializeField] private PatronData selectedPatron;
+
     [Header("Units")]
     [SerializeField] private Unit player;
 
@@ -18,8 +22,12 @@ public class Combat : MonoBehaviour
     [SerializeField] private int shrineHealAmount = 12;
     [SerializeField] private int patronCorruptCost = 1;
 
-    private readonly DeckRuntime deck = new DeckRuntime();
+    private readonly RunState runState = new RunState();
+    private readonly CardRewardService rewardService = new CardRewardService();
+    private readonly RestSiteService restSiteService = new RestSiteService();
     private readonly List<string> logLines = new List<string>();
+
+    private DeckRuntime Deck => runState.Deck;
 
     private EnemyFormation formation;
     private CardResolver cardResolver;
@@ -29,9 +37,8 @@ public class Combat : MonoBehaviour
     private CombatFlowState currentState;
     private int turnNumber;
     private int currentEnergy;
-    private int patronInfluence;
     private int selectedDeckIndex = -1;
-    private CardData selectedCard;
+    private CardInstance selectedCard;
     private CardData currentRewardCard;
 
     private void Start()
@@ -50,11 +57,12 @@ public class Combat : MonoBehaviour
     private void CreateSystems()
     {
         formation = new EnemyFormation(encounter);
-        cardResolver = new CardResolver(player, formation, deck, AddLog);
+        cardResolver = new CardResolver(player, formation, Deck, AddLog);
         enemyTurnResolver = new EnemyTurnResolver(player, formation, AddLog);
 
         view = new CombatView(
             SelectOrPlayCard,
+            DropCard,
             TargetEnemy,
             EndPlayerTurn,
             TakeReward,
@@ -70,14 +78,12 @@ public class Combat : MonoBehaviour
     {
         EnsurePlayer();
 
-        player.Initialize("Paladin", 42);
-        patronInfluence = 0;
+        runState.Initialize(selectedClass, selectedPatron, GetStartingDeckCards());
+        player.Initialize(runState.HeroDisplayName, runState.HeroMaxHealth);
         selectedDeckIndex = -1;
         selectedCard = null;
         currentRewardCard = null;
         logLines.Clear();
-
-        deck.Initialize(startingDeckCards);
 
         if (combatRules == null)
         {
@@ -95,7 +101,7 @@ public class Combat : MonoBehaviour
             return;
         }
 
-        if (deck.Deck.Count == 0)
+        if (Deck.Deck.Count == 0)
         {
             currentState = CombatFlowState.Defeat;
             AddLog("No starting deck assigned on the Combat component.");
@@ -104,6 +110,16 @@ public class Combat : MonoBehaviour
         }
 
         StartCombat();
+    }
+
+    private IEnumerable<CardData> GetStartingDeckCards()
+    {
+        if (selectedClass != null && selectedClass.startingDeck.Count > 0)
+        {
+            return selectedClass.startingDeck;
+        }
+
+        return startingDeckCards;
     }
 
     private void StartCombat()
@@ -115,9 +131,9 @@ public class Combat : MonoBehaviour
 
         player.ResetForCombat();
         formation.Spawn();
-        deck.DrawNewHand(combatRules.handSize);
+        Deck.DrawNewHand(combatRules.handSize);
 
-        AddLog("Combat begins. Use energy, pick targets, then end turn.");
+        AddPatronLine(PatronDialogueTrigger.CombatStart, "Combat begins. Use energy, pick targets, then end turn.");
         RefreshUi();
     }
 
@@ -129,22 +145,22 @@ public class Combat : MonoBehaviour
 
         player.ClearBlock();
         formation.ClearBlock();
-        deck.DrawNewHand(combatRules.handSize);
+        Deck.DrawNewHand(combatRules.handSize);
 
         AddLog($"Turn {turnNumber} begins.");
         RefreshUi();
     }
 
-    private void SelectOrPlayCard(CardData card)
+    private void SelectOrPlayCard(CardInstance card)
     {
-        if (currentState != CombatFlowState.Combat || card == null || !deck.Hand.Contains(card))
+        if (currentState != CombatFlowState.Combat || card == null || !Deck.Hand.Contains(card))
         {
             return;
         }
 
-        if (currentEnergy < card.energyCost)
+        if (currentEnergy < card.EnergyCost)
         {
-            AddLog($"Not enough energy for {card.cardName}.");
+            AddLog($"Not enough energy for {card.CardName}.");
             RefreshUi();
             return;
         }
@@ -152,12 +168,33 @@ public class Combat : MonoBehaviour
         if (TargetResolver.RequiresEnemySelection(card))
         {
             selectedCard = card;
-            AddLog($"Choose an enemy target for {card.cardName}.");
+            AddLog($"Choose an enemy target for {card.CardName}.");
             RefreshUi();
             return;
         }
 
         PlayCard(card, null);
+    }
+
+    private void DropCard(CardInstance card, GameObject dropTarget)
+    {
+        if (currentState != CombatFlowState.Combat || card == null || !Deck.Hand.Contains(card))
+        {
+            return;
+        }
+
+        if (TargetResolver.RequiresEnemySelection(card))
+        {
+            EnemyTargetView targetView = dropTarget != null ? dropTarget.GetComponentInParent<EnemyTargetView>() : null;
+
+            if (targetView != null && targetView.Enemy != null && targetView.Enemy.IsAlive)
+            {
+                PlayCard(card, targetView.Enemy);
+                return;
+            }
+        }
+
+        SelectOrPlayCard(card);
     }
 
     private void TargetEnemy(GridEnemy target)
@@ -170,18 +207,18 @@ public class Combat : MonoBehaviour
         PlayCard(selectedCard, target);
     }
 
-    private void PlayCard(CardData card, GridEnemy selectedEnemy)
+    private void PlayCard(CardInstance card, GridEnemy selectedEnemy)
     {
-        if (currentState != CombatFlowState.Combat || card == null || !deck.Hand.Contains(card) || currentEnergy < card.energyCost)
+        if (currentState != CombatFlowState.Combat || card == null || !Deck.Hand.Contains(card) || currentEnergy < card.EnergyCost)
         {
             return;
         }
 
-        currentEnergy -= card.energyCost;
-        deck.PlayCard(card);
+        currentEnergy -= card.EnergyCost;
+        Deck.PlayCard(card);
         selectedCard = null;
 
-        AddLog($"Played {card.cardName}.");
+        AddLog($"Played {card.CardName}.");
         cardResolver.Resolve(card, selectedEnemy);
 
         if (!TryResolveCombatEnd())
@@ -198,7 +235,7 @@ public class Combat : MonoBehaviour
         }
 
         selectedCard = null;
-        deck.DiscardHand();
+        Deck.DiscardHand();
 
         AddLog("Player ends turn.");
         enemyTurnResolver.Resolve();
@@ -221,7 +258,7 @@ public class Combat : MonoBehaviour
         if (player.IsDead)
         {
             currentState = CombatFlowState.Defeat;
-            AddLog("The Paladin falls.");
+            AddPatronLine(PatronDialogueTrigger.Defeat, $"The {runState.HeroDisplayName} falls.");
             RefreshUi();
             return true;
         }
@@ -232,9 +269,9 @@ public class Combat : MonoBehaviour
     private void EnterReward()
     {
         currentState = CombatFlowState.Reward;
-        currentRewardCard = rewardCards.Count > 0 ? rewardCards[0] : null;
+        currentRewardCard = rewardService.PickReward(selectedClass, rewardCards);
         selectedCard = null;
-        deck.Hand.Clear();
+        Deck.Hand.Clear();
         AddLog("Combat won. Choose a reward or sacrifice it for Patron Influence.");
     }
 
@@ -242,7 +279,7 @@ public class Combat : MonoBehaviour
     {
         if (currentRewardCard != null)
         {
-            deck.AddCard(currentRewardCard);
+            Deck.AddCard(currentRewardCard);
             AddLog($"{currentRewardCard.cardName} added to the deck.");
         }
 
@@ -251,22 +288,23 @@ public class Combat : MonoBehaviour
 
     private void SacrificeReward()
     {
-        patronInfluence++;
+        runState.GainPatronInfluence(1);
         AddLog("Reward sacrificed. Patron Influence +1.");
+        AddPatronLine(PatronDialogueTrigger.CardSacrificed, "A gift refused is still a gift to me.");
         EnterShrine();
     }
 
     private void EnterShrine()
     {
         currentState = CombatFlowState.Shrine;
-        selectedDeckIndex = deck.Deck.Count > 0 ? 0 : -1;
-        AddLog("The Devourer's shrine waits.");
+        selectedDeckIndex = Deck.Deck.Count > 0 ? 0 : -1;
+        AddPatronLine(PatronDialogueTrigger.RestSiteEntered, $"{runState.PatronDisplayName}'s shrine waits.");
         RefreshUi();
     }
 
     private void SelectDeckCard(int cardIndex)
     {
-        if (currentState != CombatFlowState.Shrine || cardIndex < 0 || cardIndex >= deck.Deck.Count)
+        if (currentState != CombatFlowState.Shrine || cardIndex < 0 || cardIndex >= Deck.Deck.Count)
         {
             return;
         }
@@ -278,55 +316,60 @@ public class Combat : MonoBehaviour
     private void HealAtShrine()
     {
         player.Heal(shrineHealAmount);
+        AddPatronLine(PatronDialogueTrigger.Prayer, "Kneel, and be less broken.");
         CompleteRun($"The shrine heals the Paladin for {shrineHealAmount}.");
     }
 
     private void UpgradeSelectedCard()
     {
-        if (!SelectedCardCanUpgrade())
+        if (!restSiteService.TryUpgrade(Deck, selectedDeckIndex, out string message))
         {
             return;
         }
 
-        CardData oldCard = deck.Deck[selectedDeckIndex];
-        deck.ReplaceCard(selectedDeckIndex, oldCard.upgradeCardData);
-        CompleteRun($"{oldCard.cardName} upgraded to {deck.Deck[selectedDeckIndex].cardName}.");
+        CompleteRun(message);
     }
 
     private void CorruptSelectedCard()
     {
-        if (!SelectedCardCanCorrupt())
+        if (!restSiteService.TryCorrupt(runState, selectedDeckIndex, patronCorruptCost, out string message))
         {
             return;
         }
 
-        CardData oldCard = deck.Deck[selectedDeckIndex];
-        patronInfluence -= patronCorruptCost;
-        deck.ReplaceCard(selectedDeckIndex, oldCard.corruptedCardData);
-        CompleteRun($"{oldCard.cardName} becomes {deck.Deck[selectedDeckIndex].cardName}.");
+        AddPatronLine(PatronDialogueTrigger.CardCorrupted, "Something holy gives way to hunger.");
+        CompleteRun(message);
     }
 
     private bool SelectedCardCanUpgrade()
     {
-        return selectedDeckIndex >= 0 &&
-               selectedDeckIndex < deck.Deck.Count &&
-               deck.Deck[selectedDeckIndex].upgradeCardData != null;
+        return restSiteService.CanUpgrade(Deck, selectedDeckIndex);
     }
 
     private bool SelectedCardCanCorrupt()
     {
-        return selectedDeckIndex >= 0 &&
-               selectedDeckIndex < deck.Deck.Count &&
-               patronInfluence >= patronCorruptCost &&
-               deck.Deck[selectedDeckIndex].corruptedCardData != null;
+        return restSiteService.CanCorrupt(runState, selectedDeckIndex, patronCorruptCost);
     }
 
     private void CompleteRun(string message)
     {
         currentState = CombatFlowState.Complete;
         AddLog(message);
-        AddLog("Run complete.");
+        AddPatronLine(PatronDialogueTrigger.Victory, "Run complete.");
         RefreshUi();
+    }
+
+    private void AddPatronLine(PatronDialogueTrigger trigger, string fallback)
+    {
+        string patronLine = runState.Patron != null ? runState.Patron.GetLine(trigger) : null;
+
+        if (string.IsNullOrWhiteSpace(patronLine))
+        {
+            AddLog(fallback);
+            return;
+        }
+
+        AddLog($"{runState.PatronDisplayName}: {patronLine}");
     }
 
     private void AddLog(string message)
@@ -345,13 +388,15 @@ public class Combat : MonoBehaviour
     {
         view.Refresh(
             currentState,
+            runState.HeroDisplayName,
+            runState.PatronDisplayName,
             player,
             formation,
-            deck,
+            Deck,
             turnNumber,
             currentEnergy,
             combatRules != null ? combatRules.maxEnergy : 0,
-            patronInfluence,
+            runState.PatronInfluence,
             selectedCard,
             selectedDeckIndex,
             currentRewardCard,

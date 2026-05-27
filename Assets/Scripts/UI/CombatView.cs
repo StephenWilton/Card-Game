@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 public class CombatView
 {
-    private readonly Action<CardData> onCardClicked;
+    private readonly Action<CardInstance> onCardClicked;
+    private readonly Action<CardInstance, GameObject> onCardDropped;
     private readonly Action<GridEnemy> onEnemyClicked;
     private readonly Action onEndTurnClicked;
     private readonly Action onTakeRewardClicked;
@@ -33,7 +34,8 @@ public class CombatView
     private readonly Color selectedButtonColor = new Color(0.55f, 0.38f, 0.2f, 1f);
 
     public CombatView(
-        Action<CardData> onCardClicked,
+        Action<CardInstance> onCardClicked,
+        Action<CardInstance, GameObject> onCardDropped,
         Action<GridEnemy> onEnemyClicked,
         Action onEndTurnClicked,
         Action onTakeRewardClicked,
@@ -45,6 +47,7 @@ public class CombatView
         Action onRestartClicked)
     {
         this.onCardClicked = onCardClicked;
+        this.onCardDropped = onCardDropped;
         this.onEnemyClicked = onEnemyClicked;
         this.onEndTurnClicked = onEndTurnClicked;
         this.onTakeRewardClicked = onTakeRewardClicked;
@@ -130,6 +133,8 @@ public class CombatView
 
     public void Refresh(
         CombatFlowState state,
+        string heroName,
+        string patronName,
         Unit player,
         EnemyFormation formation,
         DeckRuntime deck,
@@ -137,7 +142,7 @@ public class CombatView
         int currentEnergy,
         int maxEnergy,
         int patronInfluence,
-        CardData selectedCard,
+        CardInstance selectedCard,
         int selectedDeckIndex,
         CardData currentRewardCard,
         IReadOnlyList<string> logLines,
@@ -146,7 +151,7 @@ public class CombatView
         bool canUpgrade,
         bool canCorrupt)
     {
-        titleText.text = $"Paladin / The Devourer     Patron Influence: {patronInfluence}";
+        titleText.text = $"{heroName} / {patronName}     Patron Influence: {patronInfluence}";
         statusText.text = GetStatusText(state, turnNumber, currentEnergy, maxEnergy, selectedCard);
         playerText.text = GetPlayerText(player);
         deckText.text = GetDeckText(deck, selectedDeckIndex);
@@ -165,14 +170,14 @@ public class CombatView
         }
     }
 
-    private string GetStatusText(CombatFlowState state, int turnNumber, int currentEnergy, int maxEnergy, CardData selectedCard)
+    private string GetStatusText(CombatFlowState state, int turnNumber, int currentEnergy, int maxEnergy, CardInstance selectedCard)
     {
         if (state != CombatFlowState.Combat)
         {
             return $"State: {state}";
         }
 
-        string selectedText = selectedCard == null ? "No card selected" : $"Targeting with {selectedCard.cardName}";
+        string selectedText = selectedCard == null ? "No card selected" : $"Targeting with {selectedCard.CardName}";
         return $"Turn {turnNumber}   Energy: {currentEnergy}/{maxEnergy}   {selectedText}";
     }
 
@@ -187,10 +192,11 @@ public class CombatView
 
         for (int i = 0; i < deck.Deck.Count; i++)
         {
+            CardData cardData = deck.Deck[i].CardData;
             string marker = i == selectedDeckIndex ? "> " : "  ";
-            text += $"{marker}{i + 1}. {deck.Deck[i].cardName}";
+            text += $"{marker}{i + 1}. {deck.Deck[i].CardName}";
 
-            if (deck.Deck[i].isCorrupted)
+            if (cardData != null && cardData.isCorrupted)
             {
                 text += " [Corrupted]";
             }
@@ -201,7 +207,7 @@ public class CombatView
         return text;
     }
 
-    private void RenderEnemyGrid(EnemyFormation formation, CardData selectedCard)
+    private void RenderEnemyGrid(EnemyFormation formation, CardInstance selectedCard)
     {
         ClearChildren(enemyGridPanel);
         CreateText(enemyGridPanel, "EnemyGridTitle", 24, TextAlignmentOptions.Center).text = "Enemy Formation";
@@ -231,6 +237,7 @@ public class CombatView
                 GridEnemy enemyToTarget = gridEnemy;
                 Button enemyButton = CreateButton(rowPanel, GetEnemyButtonText(gridEnemy), () => onEnemyClicked(enemyToTarget));
                 enemyButton.interactable = selectedCard != null && TargetResolver.RequiresEnemySelection(selectedCard);
+                enemyButton.gameObject.AddComponent<EnemyTargetView>().Bind(enemyToTarget);
             }
         }
     }
@@ -242,7 +249,7 @@ public class CombatView
                $"Intent: Attack {gridEnemy.AttackDamage}";
     }
 
-    private void RenderHand(CombatFlowState state, DeckRuntime deck, int currentEnergy, CardData selectedCard)
+    private void RenderHand(CombatFlowState state, DeckRuntime deck, int currentEnergy, CardInstance selectedCard)
     {
         ClearChildren(handPanel);
 
@@ -252,11 +259,13 @@ public class CombatView
             return;
         }
 
-        foreach (CardData card in deck.Hand)
+        foreach (CardInstance card in deck.Hand)
         {
-            CardData cardToPlay = card;
-            Button cardButton = CreateButton(handPanel, GetCardButtonText(card), () => onCardClicked(cardToPlay));
-            cardButton.interactable = currentEnergy >= card.energyCost;
+            CardInstance cardToPlay = card;
+            bool isPlayable = currentEnergy >= card.EnergyCost;
+            Button cardButton = CreateButton(handPanel, GetCardButtonText(card.CardData), null);
+            cardButton.interactable = isPlayable;
+            cardButton.gameObject.AddComponent<CardDragView>().Bind(cardToPlay, canvas, onCardClicked, onCardDropped, isPlayable);
 
             if (selectedCard == card)
             {
@@ -317,7 +326,7 @@ public class CombatView
         for (int i = 0; i < deck.Deck.Count; i++)
         {
             int cardIndex = i;
-            string label = i == selectedDeckIndex ? $"Selected: {deck.Deck[i].cardName}" : $"Select {deck.Deck[i].cardName}";
+            string label = i == selectedDeckIndex ? $"Selected: {deck.Deck[i].CardName}" : $"Select {deck.Deck[i].CardName}";
             CreateButton(choicePanel, label, () => onDeckCardClicked(cardIndex));
         }
 
@@ -332,6 +341,11 @@ public class CombatView
 
     private string GetCardButtonText(CardData card)
     {
+        if (card == null)
+        {
+            return "Missing Card";
+        }
+
         string corruptTag = card.isCorrupted ? " [Corrupted]" : "";
         return $"{card.cardName}{corruptTag}\nCost {card.energyCost}\n{GetTargetText(card)}\n{card.cardDescription}";
     }

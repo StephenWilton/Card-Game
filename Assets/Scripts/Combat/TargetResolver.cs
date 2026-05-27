@@ -2,8 +2,18 @@ using System.Collections.Generic;
 
 public static class TargetResolver
 {
+    public static bool RequiresEnemySelection(CardInstance card)
+    {
+        return card != null && RequiresEnemySelection(card.CardData);
+    }
+
     public static bool RequiresEnemySelection(CardData card)
     {
+        if (card == null)
+        {
+            return false;
+        }
+
         foreach (CardActionData action in card.actions)
         {
             if (action.target == CardTarget.Enemy || action.target == CardTarget.PierceColumn)

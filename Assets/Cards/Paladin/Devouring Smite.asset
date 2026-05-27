@@ -18,22 +18,29 @@ MonoBehaviour:
   cardType: 0
   rarity: 0
   cardName: Devouring Smite
-  cardDescription: Deal 10 damage. Heal 3.
+  cardDescription: Deal 8 Holy damage. If lethal, heal 4. If not, take 2 damage.
   energyCost: 1
   actions:
   - actionType: 0
     target: 2
-    amount: 10
-    damageType: 1
+    amount: 8
+    damageType: 2
     statusToApply: 0
     conditionType: 0
     requiredStatus: 0
   - actionType: 2
     target: 1
-    amount: 3
+    amount: 4
     damageType: 0
     statusToApply: 0
-    conditionType: 0
+    conditionType: 3
+    requiredStatus: 0
+  - actionType: 0
+    target: 1
+    amount: 2
+    damageType: 1
+    statusToApply: 0
+    conditionType: 4
     requiredStatus: 0
   upgradeCardData: {fileID: 0}
   corruptedCardData: {fileID: 0}

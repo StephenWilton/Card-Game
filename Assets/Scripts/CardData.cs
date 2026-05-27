@@ -57,7 +57,9 @@ public enum ConditionType
 {
     None,
     PlayerHasStatus,
-    EnemyHasStatus
+    EnemyHasStatus,
+    LastDamageWasLethal,
+    LastDamageWasNotLethal
 }
 
 public enum CardActionType

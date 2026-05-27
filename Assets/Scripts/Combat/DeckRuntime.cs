@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class DeckRuntime
 {
-    public List<CardData> Deck { get; } = new List<CardData>();
-    public List<CardData> DrawPile { get; } = new List<CardData>();
-    public List<CardData> Hand { get; } = new List<CardData>();
-    public List<CardData> DiscardPile { get; } = new List<CardData>();
+    public List<CardInstance> Deck { get; } = new List<CardInstance>();
+    public List<CardInstance> DrawPile { get; } = new List<CardInstance>();
+    public List<CardInstance> Hand { get; } = new List<CardInstance>();
+    public List<CardInstance> DiscardPile { get; } = new List<CardInstance>();
 
     public void Initialize(IEnumerable<CardData> startingCards)
     {
@@ -15,7 +15,19 @@ public class DeckRuntime
         Hand.Clear();
         DiscardPile.Clear();
 
-        Deck.AddRange(startingCards);
+        if (startingCards == null)
+        {
+            return;
+        }
+
+        foreach (CardData card in startingCards)
+        {
+            if (card != null)
+            {
+                Deck.Add(new CardInstance(card));
+            }
+        }
+
         DrawPile.AddRange(Deck);
         Shuffle(DrawPile);
     }
@@ -40,13 +52,13 @@ public class DeckRuntime
                 return;
             }
 
-            CardData drawnCard = DrawPile[0];
+            CardInstance drawnCard = DrawPile[0];
             DrawPile.RemoveAt(0);
             Hand.Add(drawnCard);
         }
     }
 
-    public void PlayCard(CardData card)
+    public void PlayCard(CardInstance card)
     {
         if (!Hand.Remove(card))
         {
@@ -56,15 +68,17 @@ public class DeckRuntime
         DiscardPile.Add(card);
     }
 
-    public void AddCard(CardData card)
+    public CardInstance AddCard(CardData card)
     {
         if (card == null)
         {
-            return;
+            return null;
         }
 
-        Deck.Add(card);
-        DiscardPile.Add(card);
+        CardInstance cardInstance = new CardInstance(card);
+        Deck.Add(cardInstance);
+        DiscardPile.Add(cardInstance);
+        return cardInstance;
     }
 
     public void ReplaceCard(int index, CardData replacement)
@@ -74,12 +88,7 @@ public class DeckRuntime
             return;
         }
 
-        CardData oldCard = Deck[index];
-        Deck[index] = replacement;
-
-        ReplaceCardReference(DrawPile, oldCard, replacement);
-        ReplaceCardReference(Hand, oldCard, replacement);
-        ReplaceCardReference(DiscardPile, oldCard, replacement);
+        Deck[index].ReplaceData(replacement);
     }
 
     public void DiscardHand()
@@ -95,21 +104,12 @@ public class DeckRuntime
         Shuffle(DrawPile);
     }
 
-    private void ReplaceCardReference(List<CardData> cards, CardData oldCard, CardData replacement)
-    {
-        int index = cards.IndexOf(oldCard);
-        if (index >= 0)
-        {
-            cards[index] = replacement;
-        }
-    }
-
-    private void Shuffle(List<CardData> cards)
+    private void Shuffle(List<CardInstance> cards)
     {
         for (int i = cards.Count - 1; i > 0; i--)
         {
             int randomIndex = Random.Range(0, i + 1);
-            CardData temp = cards[i];
+            CardInstance temp = cards[i];
             cards[i] = cards[randomIndex];
             cards[randomIndex] = temp;
         }
