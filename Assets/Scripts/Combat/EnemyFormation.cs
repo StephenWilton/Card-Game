@@ -37,7 +37,10 @@ public class EnemyFormation
                 enemyUnit,
                 Mathf.Clamp(slot.row, 0, 1),
                 Mathf.Clamp(slot.column, 0, GridColumns - 1),
-                Mathf.Max(slot.enemyData.attackDamage, 0)));
+                Mathf.Max(slot.enemyData.attackDamage, 0),
+                slot.enemyData.isMiniBoss,
+                slot.enemyData.specialBehavior,
+                slot.enemyData.intents));
         }
     }
 

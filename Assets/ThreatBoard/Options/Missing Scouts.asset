@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dbbff648cf54c61ac4b7f9796af0ab8, type: 3}
+  m_Name: Missing Scouts
+  m_EditorClassIdentifier: Assembly-CSharp::ThreatBoardOptionData
+  displayName: Missing Scouts
+  optionType: 4
+  outcomeType: 3
+  description: Three scouts did not return from the fog line. Find what happened, or accept that the town will hear rumors instead.
+  encounter: {fileID: 0}
+  countdownCost: 1
+  threatLevelDelta: 1
+  safeHavenIntegrityDelta: -1
+  patronInfluenceReward: 0
+  baseWeight: 1
+  canBePatronSuggested: 1

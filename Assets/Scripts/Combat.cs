@@ -25,7 +25,10 @@ public class Combat : MonoBehaviour
     private readonly RunState runState = new RunState();
     private readonly CardRewardService rewardService = new CardRewardService();
     private readonly RestSiteService restSiteService = new RestSiteService();
+    private readonly CombatPlayValidator playValidator = new CombatPlayValidator();
     private readonly List<string> logLines = new List<string>();
+    private readonly List<CardData> playedCardsThisTurn = new List<CardData>();
+    private readonly List<CardData> lastCompletedPlayerTurnCards = new List<CardData>();
 
     private DeckRuntime Deck => runState.Deck;
 
@@ -84,6 +87,7 @@ public class Combat : MonoBehaviour
         selectedCard = null;
         currentRewardCard = null;
         logLines.Clear();
+        view?.ResetTransientState();
 
         if (combatRules == null)
         {
@@ -128,6 +132,8 @@ public class Combat : MonoBehaviour
         turnNumber = 1;
         currentEnergy = combatRules.maxEnergy;
         selectedCard = null;
+        playedCardsThisTurn.Clear();
+        lastCompletedPlayerTurnCards.Clear();
 
         player.ResetForCombat();
         formation.Spawn();
@@ -142,6 +148,7 @@ public class Combat : MonoBehaviour
         turnNumber++;
         currentEnergy = combatRules.maxEnergy;
         selectedCard = null;
+        playedCardsThisTurn.Clear();
 
         player.ClearBlock();
         formation.ClearBlock();
@@ -153,15 +160,8 @@ public class Combat : MonoBehaviour
 
     private void SelectOrPlayCard(CardInstance card)
     {
-        if (currentState != CombatFlowState.Combat || card == null || !Deck.Hand.Contains(card))
+        if (!CanBeginCardPlay(card))
         {
-            return;
-        }
-
-        if (currentEnergy < card.EnergyCost)
-        {
-            AddLog($"Not enough energy for {card.CardName}.");
-            RefreshUi();
             return;
         }
 
@@ -178,7 +178,7 @@ public class Combat : MonoBehaviour
 
     private void DropCard(CardInstance card, GameObject dropTarget)
     {
-        if (currentState != CombatFlowState.Combat || card == null || !Deck.Hand.Contains(card))
+        if (!CanBeginCardPlay(card))
         {
             return;
         }
@@ -192,9 +192,13 @@ public class Combat : MonoBehaviour
                 PlayCard(card, targetView.Enemy);
                 return;
             }
+
+            AddLog($"{card.CardName} needs a living enemy target.");
+            RefreshUi();
+            return;
         }
 
-        SelectOrPlayCard(card);
+        PlayCard(card, null);
     }
 
     private void TargetEnemy(GridEnemy target)
@@ -209,13 +213,20 @@ public class Combat : MonoBehaviour
 
     private void PlayCard(CardInstance card, GridEnemy selectedEnemy)
     {
-        if (currentState != CombatFlowState.Combat || card == null || !Deck.Hand.Contains(card) || currentEnergy < card.EnergyCost)
+        if (!playValidator.CanPlay(currentState, Deck, currentEnergy, card, selectedEnemy, out string failureReason))
         {
+            if (!string.IsNullOrWhiteSpace(failureReason))
+            {
+                AddLog(failureReason);
+                RefreshUi();
+            }
+
             return;
         }
 
         currentEnergy -= card.EnergyCost;
         Deck.PlayCard(card);
+        playedCardsThisTurn.Add(card.CardData);
         selectedCard = null;
 
         AddLog($"Played {card.CardName}.");
@@ -227,6 +238,28 @@ public class Combat : MonoBehaviour
         }
     }
 
+    private bool CanBeginCardPlay(CardInstance card)
+    {
+        if (currentState != CombatFlowState.Combat)
+        {
+            return false;
+        }
+
+        if (card == null || card.CardData == null || !Deck.Hand.Contains(card))
+        {
+            return false;
+        }
+
+        if (currentEnergy < card.EnergyCost)
+        {
+            AddLog($"Not enough energy for {card.CardName}.");
+            RefreshUi();
+            return false;
+        }
+
+        return true;
+    }
+
     private void EndPlayerTurn()
     {
         if (currentState != CombatFlowState.Combat)
@@ -235,10 +268,13 @@ public class Combat : MonoBehaviour
         }
 
         selectedCard = null;
+        lastCompletedPlayerTurnCards.Clear();
+        lastCompletedPlayerTurnCards.AddRange(playedCardsThisTurn);
+        playedCardsThisTurn.Clear();
         Deck.DiscardHand();
 
         AddLog("Player ends turn.");
-        enemyTurnResolver.Resolve();
+        enemyTurnResolver.Resolve(lastCompletedPlayerTurnCards);
 
         if (!TryResolveCombatEnd())
         {

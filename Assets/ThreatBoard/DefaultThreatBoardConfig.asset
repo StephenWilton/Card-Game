@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 016de5f8feb04b34ae864dfcd3bfc03e, type: 3}
+  m_Name: DefaultThreatBoardConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ThreatBoardConfig
+  startingCountdown: 8
+  startingThreatLevel: 1
+  startingSafeHavenIntegrity: 10
+  optionsPerBoard: 4
+  minimumCountdownCost: 1
+  threatLevelIncreasePerChoice: 1
+  safeHavenLossAtFinalCrisis: 0
+  options:
+  - {fileID: 11400000, guid: 4486a307c11846d69e12f6cce4be9e7b, type: 2}
+  - {fileID: 11400000, guid: 0ad2b1bb9b964bba827db6e2686b6c3f, type: 2}
+  - {fileID: 11400000, guid: cbecece00de44a488e66f5e5992b3ff4, type: 2}
+  - {fileID: 11400000, guid: 98d7220b5d554216a1bf4a8f345721d4, type: 2}
+  - {fileID: 11400000, guid: 9ac65f72ec224cd6917fd52b3ae9330e, type: 2}
+  - {fileID: 11400000, guid: 2f7b533043e64d2b8f98b2aa1b209ab6, type: 2}
+  - {fileID: 11400000, guid: 08c813d4f64e4eb483fd2c936c890207, type: 2}
+  - {fileID: 11400000, guid: 3958dce3dbca4933894549ad53778b64, type: 2}
+  - {fileID: 11400000, guid: b8e45194f26746f1a2dfc0389b3bcb50, type: 2}
+  - {fileID: 11400000, guid: 14b7e4c4d0c74b8496ec8be85e7d3d99, type: 2}

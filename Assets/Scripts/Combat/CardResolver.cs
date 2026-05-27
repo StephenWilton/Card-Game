@@ -22,7 +22,10 @@ public class CardResolver
             return;
         }
 
-        CardResolutionContext context = new CardResolutionContext();
+        CardResolutionContext context = new CardResolutionContext
+        {
+            SelectedEnemy = selectedEnemy
+        };
 
         foreach (CardActionData action in card.CardData.actions)
         {
@@ -47,6 +50,14 @@ public class CardResolver
 
             case ConditionType.LastDamageWasNotLethal:
                 return context.HasDamageResult && !context.LastDamageWasLethal;
+
+            case ConditionType.PlayerHasStatus:
+                return player.HasStatus(action.requiredStatus);
+
+            case ConditionType.EnemyHasStatus:
+                return context.SelectedEnemy != null &&
+                       context.SelectedEnemy.Unit != null &&
+                       context.SelectedEnemy.Unit.HasStatus(action.requiredStatus);
 
             default:
                 return false;
@@ -90,7 +101,11 @@ public class CardResolver
                 break;
 
             case CardActionType.ApplyStatus:
-                addLog($"{action.statusToApply} is not implemented yet.");
+                foreach (Unit target in TargetResolver.GetTargets(action.target, player, formation, selectedEnemy))
+                {
+                    target.ApplyStatus(action.statusToApply, action.amount);
+                    addLog($"{target.UnitName} gains {action.statusToApply} {System.Math.Max(action.amount, 1)}.");
+                }
                 break;
         }
     }
@@ -99,5 +114,6 @@ public class CardResolver
     {
         public bool HasDamageResult { get; set; }
         public bool LastDamageWasLethal { get; set; }
+        public GridEnemy SelectedEnemy { get; set; }
     }
 }
