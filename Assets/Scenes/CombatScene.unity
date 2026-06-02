@@ -402,7 +402,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 675996091}
-  - component: {fileID: 675996092}
   m_Layer: 0
   m_Name: Combat
   m_TagString: Untagged
@@ -425,35 +424,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &675996092
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 675996090}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 000ed539e9c45e74da261fb43b077f17, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Combat
-  selectedClass: {fileID: 11400000, guid: bfb714e9250c4e14a084157d3648f26c, type: 2}
-  selectedPatron: {fileID: 11400000, guid: af099b0030424c78a7c78a48cffeb146, type: 2}
-  player: {fileID: 1321886903}
-  startingDeckCards:
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6001, type: 2}
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6001, type: 2}
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6004, type: 2}
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6004, type: 2}
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6007, type: 2}
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6010, type: 2}
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6011, type: 2}
-  rewardCards:
-  - {fileID: 11400000, guid: e4a7d3f8012a4bb69a1b2c3d4e5f6012, type: 2}
-  combatRules: {fileID: 11400000, guid: a1111111111111111111111111111111, type: 2}
-  encounter: {fileID: 11400000, guid: a5555555555555555555555555555555, type: 2}
-  shrineHealAmount: 12
-  patronCorruptCost: 1
 --- !u!1 &876782252
 GameObject:
   m_ObjectHideFlags: 0
@@ -903,7 +873,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 717abead7847fd347a2ab2d9c4645d38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Unit
-  unitName: Devourer Acolyte
+  unitName: Cultist Acolyte
   unitMaxHealth: 30
   unitCurrentHealth: 30
   unitBlock: 0

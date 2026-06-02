@@ -55,7 +55,7 @@ Threat Level rises over time. It can eventually:
 - Improve rewards from dangerous threats
 - Put pressure on safe haven integrity
 
-The current implementation stores and displays Threat Level, but it is not yet wired into encounter scaling.
+Threat Level is a design direction only right now. Rebuild the actual system from scratch when the board loop is ready.
 
 ## Safe Haven
 
@@ -90,30 +90,19 @@ Patrons can become slightly aware that something is off across repeated wins. Af
 
 Repeated victories can unlock more Patrons and more Patron commentary/lore. Lore should mostly arrive through reactive lines, altered board comments, unlock text, and rare moments rather than heavy exposition scenes.
 
-## Current MVP Focus
+## Ground-Up MVP Focus
 
-- Basic combat
-- Card system
-- Patron influence/corruption system
-- Bounty/Threat Board scene
-- Countdown
-- Simple encounter selection
-- Safe haven framing
+- Preserve card authoring through `CardData`.
+- Rebuild combat from a small, understandable core.
+- Keep scene-authored objects in `CombatScene` as the first test surface.
+- Add runtime systems only when the data and ownership boundaries are clear.
+- Keep UI, combat rules, card data, and run state separate.
 
 ## Enemy Concepts
 
 ### Shattered Mirror
 
-The Shattered Mirror is a miniboss enemy that tests the player's own turn planning.
-
-Current implemented behavior:
-
-- First enemy turn: does nothing and observes.
-- Later enemy turns: mimics the player's previous completed turn.
-- Cards played by the player are replayed as mirrored effects.
-- Player/self-targeted effects apply to the Mirror.
-- Enemy-targeted effects are turned back onto the player.
-- Draw effects cannot currently be mirrored and are logged as unmirrored.
+The Shattered Mirror is a future miniboss concept that tests the player's own turn planning.
 
 Design questions still open:
 

@@ -1,15 +1,15 @@
 using System.Collections.Generic; // Lets us use List<T>
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public enum HeroClass
+public enum CardClass
 {
     Paladin
 }
 
 public enum PatronType
 {
-    None,
-    TheDevourer
+    None
 }
 
 public enum CardType
@@ -129,9 +129,10 @@ public class CardData : ScriptableObject
     [Header("Basic Card Info")]
 
     // The class this card belongs to.
-    public HeroClass heroClass = HeroClass.Paladin;
+    [FormerlySerializedAs("heroClass")]
+    public CardClass cardClass = CardClass.Paladin;
 
-    // None for normal class cards. The Devourer for corrupted patron cards.
+    // None for normal class cards.
     public PatronType patronType = PatronType.None;
 
     // True when this is a patron-influenced version of a class card.

@@ -903,7 +903,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 717abead7847fd347a2ab2d9c4645d38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Unit
-  unitName: Devourer Acolyte
+  unitName: Cultist Acolyte
   unitMaxHealth: 30
   unitCurrentHealth: 30
   unitBlock: 0

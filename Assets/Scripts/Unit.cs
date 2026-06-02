@@ -1,11 +1,12 @@
 using UnityEngine;
-using TMPro; // TextMeshPro namespace for text handling
 using System.Collections.Generic;
 
-// MonoBehaviour is the base class for all Unity scripts
-// it is used to create components that can be attached to GameObjects in the Unity Editor
 public class Unit : MonoBehaviour
 {
+    [Header("Data")]
+    [SerializeField] private EnemyData enemyData;
+
+    [Header("Runtime State")]
     [SerializeField] private string unitName = "Unit";
     [SerializeField] private int unitMaxHealth = 10;
     [SerializeField] private int unitCurrentHealth = 10;
@@ -13,12 +14,28 @@ public class Unit : MonoBehaviour
 
     private readonly Dictionary<StatusType, int> statuses = new Dictionary<StatusType, int>();
 
+    public EnemyData EnemyData => enemyData;
     public string UnitName => unitName;
     public int UnitMaxHealth => unitMaxHealth;
     public int UnitCurrentHealth => unitCurrentHealth;
     public int UnitBlock => unitBlock;
 
     public bool IsDead => unitCurrentHealth <= 0;
+
+    private void Awake()
+    {
+        InitializeFromEnemyData();
+    }
+
+    public void InitializeFromEnemyData()
+    {
+        if (enemyData == null)
+        {
+            return;
+        }
+
+        Initialize(enemyData.enemyName, enemyData.maxHealth);
+    }
 
     public void Initialize(string newUnitName, int maxHealth)
     {
@@ -38,13 +55,14 @@ public class Unit : MonoBehaviour
 
     public int TakeDamage(int damageAmount)
     {
+        bool wasDead = IsDead;
         int safeDamageAmount = Mathf.Max(damageAmount, 0);
         int damageAfterBlock = Mathf.Max(safeDamageAmount - unitBlock, 0);
-        unitCurrentHealth -= damageAfterBlock;
-        unitCurrentHealth = Mathf.Max(unitCurrentHealth, 0);
+
+        unitCurrentHealth = Mathf.Max(unitCurrentHealth - damageAfterBlock, 0);
         unitBlock = Mathf.Max(unitBlock - safeDamageAmount, 0);
 
-        if (IsDead)
+        if (!wasDead && IsDead)
         {
             Die();
         }
@@ -54,7 +72,7 @@ public class Unit : MonoBehaviour
 
     public void Heal(int healAmount)
     {
-        unitCurrentHealth = Mathf.Min(unitCurrentHealth + healAmount, unitMaxHealth);
+        unitCurrentHealth = Mathf.Min(unitCurrentHealth + Mathf.Max(healAmount, 0), unitMaxHealth);
     }
 
     public void AddBlock(int blockAmount)
@@ -127,11 +145,22 @@ public class Unit : MonoBehaviour
 
         return summary;
     }
-    
+
     public void Die()
     {
         // Handle unit death (e.g., play animation, remove from game, etc.)
         Debug.Log($"{gameObject.name} has died.");
     }
 
+    private void OnValidate()
+    {
+        if (enemyData == null)
+        {
+            return;
+        }
+
+        unitName = enemyData.enemyName;
+        unitMaxHealth = Mathf.Max(enemyData.maxHealth, 1);
+        unitCurrentHealth = Mathf.Clamp(unitCurrentHealth, 0, unitMaxHealth);
+    }
 }
