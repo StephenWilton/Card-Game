@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11673d63df83e2e46a55b8dc09316705, type: 3}
+  m_Name: Paladin
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerData
+  playerName: Paladin
+  maxHealth: 75
+  maxEnergy: 3
+  currentHealth: 75
+  currentEnergy: 3
+  startingDeck:
+  - {fileID: 11400000, guid: cc1944c6a858a8d4981e1ceda44f5640, type: 2}
+  - {fileID: 11400000, guid: 603bca683ec95474bbc7ee927125de90, type: 2}
+  - {fileID: 11400000, guid: cc1944c6a858a8d4981e1ceda44f5640, type: 2}
+  - {fileID: 11400000, guid: c97a6ce0bf6902e45b1c51b9cbbff540, type: 2}
+  - {fileID: 11400000, guid: c97a6ce0bf6902e45b1c51b9cbbff540, type: 2}
+  - {fileID: 11400000, guid: cc1944c6a858a8d4981e1ceda44f5640, type: 2}
