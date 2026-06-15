@@ -2,6 +2,6 @@ using System.Collections.Generic;
 
 public class Deck
 {
-    private readonly List<CardData> cards;
+    private readonly List<Card> cards;
 
 }

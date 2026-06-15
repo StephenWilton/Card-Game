@@ -9,14 +9,14 @@ public class PlayerData : ScriptableObject
     [SerializeField] private int maxHealth = 75;
     [SerializeField] private int maxEnergy = 3;
 
-    [SerializeField] private int currentHealth;
-    [SerializeField] private int currentEnergy;
+    [SerializeField] private int cardDraw = 5;
 
     [Header("Starting Deck")]
     [SerializeField] private List<CardData> startingDeck = new List<CardData>();
     public string PlayerName => playerName;
     public int MaxHealth => maxHealth;
     public int MaxEnergy => maxEnergy;
-    public int CurrentHealth => currentHealth;
+
+    public int CardDraw => cardDraw;
     public List<CardData> StartingDeck => startingDeck;
 }
