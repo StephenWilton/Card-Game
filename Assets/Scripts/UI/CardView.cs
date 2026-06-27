@@ -6,6 +6,8 @@ public class CardView : MonoBehaviour
     [Header("Card Info")]
     [SerializeField] private CardData cardData;
     [SerializeField] private TMP_Text cardName;
+    
+    [SerializeField] private TMP_Text cardType;
 
     [SerializeField] private TMP_Text cardDescription;
     [SerializeField] private TMP_Text energyCost;
@@ -26,6 +28,8 @@ public class CardView : MonoBehaviour
         cardName.text = card.CardName;
         cardDescription.text = card.CardDescription;
         energyCost.text = card.EnergyCost.ToString();
+        cardType.text = card.CardType.ToString();
+        
 
     }
 }

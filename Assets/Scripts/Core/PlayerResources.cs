@@ -1,5 +1,7 @@
-public class PlayerResources
+using System.Collections.Generic;
+class PlayerResources
 {
+    private readonly List<Card> cards;
     public int CurrentEnergy { get; private set; }
     public int MaxEnergy { get; private set; }
 
@@ -9,7 +11,7 @@ public class PlayerResources
         MaxEnergy = maxEnergy;
         CurrentEnergy = maxEnergy;
         CardDraw = cardDraw;
-        
+
     }
 
 }
