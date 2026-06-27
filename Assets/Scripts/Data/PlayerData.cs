@@ -19,4 +19,5 @@ public class PlayerData : ScriptableObject
 
     public int CardDraw => cardDraw;
     public List<CardData> StartingDeck => startingDeck;
+
 }

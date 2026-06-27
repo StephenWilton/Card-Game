@@ -1309,6 +1309,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardView
   cardData: {fileID: 11400000, guid: cc1944c6a858a8d4981e1ceda44f5640, type: 2}
   cardName: {fileID: 3443391805052900019}
-  cardType: {fileID: 0}
+  cardType: {fileID: 526119323792684212}
   cardDescription: {fileID: 4414201962424053444}
   energyCost: {fileID: 2432184414387417109}

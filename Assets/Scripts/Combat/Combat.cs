@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Combat : MonoBehaviour
 {
@@ -21,19 +22,28 @@ public class Combat : MonoBehaviour
 
     [SerializeField] private TMP_Text enemyIntentName;
 
+    [Header("Cards")]
+    [SerializeField] private GameObject cardPanelPrefab;
+    [SerializeField] private Transform handPanel;
+    [SerializeField] private int startingHandSize = 3;
+
+    private readonly List<Card> drawPile = new List<Card>();
+    private readonly List<Card> hand = new List<Card>();
+
+    private PlayerState playerState;
     private Unit playerUnit;
     private Unit enemyUnit;
 
-    private int playerMaxEnergy;
-    private int playerCurrentEnergy;
-
     private void Start()
     {
-        playerUnit = new Unit(playerData.PlayerName, playerData.MaxHealth);
+        playerState = new PlayerState(playerData);
+
+        playerUnit = new Unit(playerState.PlayerName, playerState.MaxHealth);
         enemyUnit = new Unit(enemyData.EnemyName, enemyData.MaxHealth);
 
-        playerMaxEnergy = playerData.MaxEnergy;
-        playerCurrentEnergy = playerMaxEnergy;
+        CreateDrawPile();
+        Shuffle(drawPile);
+        DrawCards(startingHandSize);
 
         RefreshUI();
     }
@@ -43,7 +53,7 @@ public class Combat : MonoBehaviour
     {
         playerName.text = playerUnit.UnitName;
         playerHealth.text = $"{playerUnit.CurrentHealth}/{playerUnit.MaxHealth}";
-        playerEnergy.text = $"{playerCurrentEnergy}/{playerMaxEnergy}";
+        playerEnergy.text = $"{playerState.CurrentEnergy}/{playerState.MaxEnergy}";
 
         enemyName.text = enemyUnit.UnitName;
         enemyHealth.text = $"{enemyUnit.CurrentHealth}/{enemyUnit.MaxHealth}";
@@ -53,5 +63,52 @@ public class Combat : MonoBehaviour
         enemyIntentName.text = $"{intent.ActionName}";
 
 
+    }
+
+    private void CreateDrawPile()
+    {
+        drawPile.Clear();
+        hand.Clear();
+
+        foreach (CardData cardData in playerState.Deck)
+        {
+            drawPile.Add(new Card(cardData));
+        }
+    }
+
+    private void DrawCards(int amount)
+    {
+        for (int i = 0; i < amount; i++)
+        {
+            DrawCard();
+        }
+    }
+
+    private void DrawCard()
+    {
+        if (drawPile.Count == 0)
+        {
+            return;
+        }
+
+        Card card = drawPile[0];
+        drawPile.RemoveAt(0);
+        hand.Add(card);
+
+        GameObject cardObject = Instantiate(cardPanelPrefab, handPanel);
+        CardView cardView = cardObject.GetComponent<CardView>();
+        cardView.SetCardInfo(card);
+    }
+
+    private void Shuffle(List<Card> cards)
+    {
+        for (int i = 0; i < cards.Count; i++)
+        {
+            int randomIndex = Random.Range(i, cards.Count);
+
+            Card temp = cards[i];
+            cards[i] = cards[randomIndex];
+            cards[randomIndex] = temp;
+        }
     }
 }
