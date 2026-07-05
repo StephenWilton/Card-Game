@@ -25,8 +25,6 @@ public class Combat : MonoBehaviour
     [Header("Cards")]
     [SerializeField] private GameObject cardPanelPrefab;
     [SerializeField] private Transform handPanel;
-    [SerializeField] private int startingHandSize = 3;
-
     private readonly List<Card> drawPile = new List<Card>();
     private readonly List<Card> hand = new List<Card>();
 
@@ -43,7 +41,7 @@ public class Combat : MonoBehaviour
 
         CreateDrawPile();
         Shuffle(drawPile);
-        DrawCards(startingHandSize);
+        DrawCards(playerState.cardDraw);
 
         RefreshUI();
     }
